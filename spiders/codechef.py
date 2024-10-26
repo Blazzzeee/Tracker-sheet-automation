@@ -2,6 +2,8 @@ from typing import Iterable
 import scrapy
 from scrapy_playwright.page import PageMethod
 
+
+
 class CodechefSpider(scrapy.Spider):
     name = "codechef"
     # allowed_domains = ["codechef.com"]
@@ -16,4 +18,6 @@ class CodechefSpider(scrapy.Spider):
         
 
     async def parse(self, response):
-        yield {test1: response.text}
+        
+
+        yield {"test1": response.css("div#rankContentDiv").get()}
