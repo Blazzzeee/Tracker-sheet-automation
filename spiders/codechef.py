@@ -20,7 +20,7 @@ class CodechefSpider(scrapy.Spider):
         need.
         """
         yield scrapy.Request(
-            url="https://www.codechef.com/users/blazze",
+            url="https://www.codechef.com/users/vashuvats1",
             callback=self.parse,
             meta={
                 "playwright": True,
