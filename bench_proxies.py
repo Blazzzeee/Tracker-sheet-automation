@@ -4,10 +4,15 @@ import multiprocessing
 import logging
 from tqdm import tqdm  
 
-
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-test_url = "https://ipinfo.io/json"
+# List of test URLs
+test_urls = [
+    "https://ipinfo.io/json",
+    "https://httpbin.org/get",
+    "https://api.ipify.org?format=json",
+    "https://www.google.com"
+]
 
 def load_proxies_from_file(filename):
     """Load proxies from a given file."""
@@ -16,17 +21,20 @@ def load_proxies_from_file(filename):
     return proxies
 
 def check_proxy(proxy):
-    """Check the response time of a proxy."""
-    start_time = time.time()
-    try:
-        logging.info(f"Testing proxy: {proxy}")
-        response = requests.get(test_url, proxies={"http": proxy, "https": proxy}, timeout=5)
-        response_time = time.time() - start_time
-        logging.info(f"Proxy {proxy} responded with status code {response.status_code} in {response_time:.2f} seconds.")
-        return proxy, response.status_code, response_time
-    except requests.RequestException:
-        logging.warning(f"Proxy {proxy} failed to respond.")
-        return proxy, None, None  
+    """Check the response time of a proxy for multiple URLs."""
+    results = []
+    for url in test_urls:
+        start_time = time.time()
+        try:
+            logging.info(f"Testing proxy: {proxy} with URL: {url}")
+            response = requests.get(url, proxies={"http": proxy, "https": proxy}, timeout=5)
+            response_time = time.time() - start_time
+            logging.info(f"Proxy {proxy} responded with status code {response.status_code} in {response_time:.2f} seconds.")
+            results.append((proxy, url, response.status_code, response_time))
+        except requests.RequestException:
+            logging.warning(f"Proxy {proxy} failed to respond for URL: {url}.")
+            results.append((proxy, url, None, None))
+    return results
 
 def benchmark_proxies(proxies):
     results = []
@@ -34,22 +42,22 @@ def benchmark_proxies(proxies):
     with tqdm(total=len(proxies), desc="Testing Proxies") as pbar:
         with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
             for proxy, result in zip(proxies, pool.imap(check_proxy, proxies)):
-                results.append(result)
+                results.extend(result)  # Append multiple results for each proxy
                 pbar.update(1)  
 
     return results
 
 def save_results_to_file(results, filename):
     """Save benchmarking results to a file."""
-    valid_results = [(proxy, status_code, response_time) for proxy, status_code, response_time in results if status_code is not None]
-    sorted_results = sorted(valid_results, key=lambda x: x[2])  # Sort by response time
+    valid_results = [(proxy, url, status_code, response_time) for proxy, url, status_code, response_time in results if status_code is not None]
+    sorted_results = sorted(valid_results, key=lambda x: x[3])  # Sort by response time
 
     with open(filename, 'a') as file:
-        for proxy, status_code, response_time in sorted_results:
+        for proxy, url, status_code, response_time in sorted_results:
             file.write(f"{proxy}\n")
 
 if __name__ == "__main__":
-    proxies_file = "Proxies\http_proxies.txt"
+    proxies_file = "Proxies\Free_Proxy_List.txt"
     proxies = load_proxies_from_file(proxies_file)
     
     logging.info("Starting proxy benchmarking...")
