@@ -101,3 +101,28 @@ class MainDownloaderMiddleware:
 
     def spider_opened(self, spider):
         spider.logger.info("Spider opened: %s" % spider.name)
+        
+
+
+class InfiniteRetryMiddleware:
+    def __init__(self, crawler):
+        self.crawler = crawler
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        return cls(crawler)
+
+    def process_response(self, request, response, spider):
+        # Check if the response is an error (e.g., HTTP 500, 503)
+        if response.status in [500, 502, 503, 504, 408]:
+            # Retry the request indefinitely
+            return self._retry(request, spider) or response
+        return response
+
+    def _retry(self, request, spider):
+        # Log the retry
+        spider.logger.info(f"Retrying {request.url}")
+        # Return a new request to retry
+        return request.replace(dont_filter=True)
+
+

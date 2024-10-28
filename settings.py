@@ -108,4 +108,16 @@ TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 DOWNLOADER_MIDDLEWARES = {
     'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
     'scrapy_user_agents.middlewares.RandomUserAgentMiddleware': 400,
+    'rotating_proxies.middlewares.RotatingProxyMiddleware': 610,
+    'rotating_proxies.middlewares.BanDetectionMiddleware': 620,
+    'main.middlewares.InfiniteRetryMiddleware': 543
 }
+## settings.py
+
+ROTATING_PROXY_LIST_PATH = 'proxy_benchmark_results.txt'
+
+
+# settings.py
+CONCURRENT_REQUESTS = 64  # Default is 16, increase to allow more concurrent requests
+CONCURRENT_REQUESTS_PER_DOMAIN = 10 # Limit requests to a single domain
+CONCURRENT_REQUESTS_PER_IP = 8  # Limit requests to a single IP

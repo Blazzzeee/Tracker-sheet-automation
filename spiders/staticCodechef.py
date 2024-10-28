@@ -1,10 +1,9 @@
 import scrapy
 import json
-import time
+
 
 class CodechefSpider(scrapy.Spider):
     name = "static1"
-    allowed_domains = ["codechef.com"]
     max_page = 0
     init_parse = False
 
@@ -22,7 +21,6 @@ class CodechefSpider(scrapy.Spider):
         selector = scrapy.Selector(text=html_content)
         data = []
 
-        # Parse the first page
         for row in selector.css("table.dataTable > tbody > tr"):
             problem = row.css("td:nth-child(2) a::text").get()
             result = row.css("td:nth-child(3) span::attr(title)").get()
@@ -34,7 +32,7 @@ class CodechefSpider(scrapy.Spider):
 
         yield {"data": data}
 
-        # Schedule requests for subsequent pages
+
         for page in range(1,self.max_page):
             next_page_url = f"https://www.codechef.com/recent/user?page={page}&user_handle=vashuvats1"
             yield scrapy.Request(url=next_page_url, callback=self.parse_page)
@@ -45,7 +43,6 @@ class CodechefSpider(scrapy.Spider):
         selector = scrapy.Selector(text=html_content)
         data = []
 
-        # Parse subsequent pages
         for row in selector.css("table.dataTable > tbody > tr"):
             problem = row.css("td:nth-child(2) a::text").get()
             result = row.css("td:nth-child(3) span::attr(title)").get()
@@ -56,3 +53,4 @@ class CodechefSpider(scrapy.Spider):
                 })
 
         yield {"data": data}
+
